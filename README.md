@@ -1,23 +1,17 @@
-# The Ancients
+# The Wizards
 
-You must have Ancient Helms to enter.
+You must have Wizards Cards to enter.
 
 ## Getting Started
 
 👇 Clone this repository:
 
-`
-git clone https://github.com/the-ancients/ancient-adventurers.git && cd ancient-adventurers
-`
+`git clone https://github.com/mwdwrd/wizards-discord && cd wizards-discord`
 
 ### Install dependencies
 
-`
-npm install
-`
+`npm install`
 
 ### Run
 
-`
-npm run dev
-`
+`npm run dev`
