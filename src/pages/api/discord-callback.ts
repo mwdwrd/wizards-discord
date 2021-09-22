@@ -19,8 +19,15 @@ const api = async (req: NextApiRequest, res: NextApiResponse) => {
   if (!wizardCards.length) return res.redirect("/unauthorized");
 
   await prisma.user.update({
-    where: { id: user.id },
-    data: { discordId: profile.id, inServer: true, username: profile.username },
+    where: {
+      id: user.id,
+    },
+    data: {
+      discordId: profile.id,
+      inServer: true,
+      username: profile.username,
+      wizards: wizardCards.map((cardId: number) => cardId.toString()),
+    },
   });
 
   await addToServer(profile.id, accessToken);

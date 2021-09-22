@@ -13,6 +13,8 @@ const api = async (req: NextApiRequest, res: NextApiResponse) => {
   if (verified) {
     const wizardCards = await getWizardCards(account.toLowerCase());
 
+    console.log("wizardCards", wizardCards);
+
     if (wizardCards.length > 0) {
       let [user] = await prisma.user.findMany({
         where: { address: account.toLowerCase() },
@@ -20,7 +22,10 @@ const api = async (req: NextApiRequest, res: NextApiResponse) => {
 
       if (!user) {
         user = await prisma.user.create({
-          data: { address: account.toLowerCase() },
+          data: {
+            address: account.toLowerCase(),
+            wizards: wizardCards.map((cardId: number) => cardId.toString()),
+          },
         });
       }
 

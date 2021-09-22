@@ -38,7 +38,7 @@ const api: NextApiHandler = async (_req, res) => {
         data: {
           lastChecked: new Date(),
           inServer: true,
-          wizards: wizardCards.map((cardId: number) => cardId),
+          wizards: wizardCards.map((cardId: number) => cardId.toString()),
         },
       });
 
