@@ -14,7 +14,7 @@ const IndexPage = () => {
   return (
     <>
       <h1>The Wizards</h1>
-      <div className="message">You must have an Ancient Helm to enter.</div>
+      <div className="message">You must have a Wizard Card to enter.</div>
       {!account ? (
         <>
           <button

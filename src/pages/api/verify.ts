@@ -2,8 +2,8 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { utils } from "ethers";
 import { SIGNATURE_TEXT } from "@app/features/useSignature";
 import { getLoginURL } from "@server/services/Discord";
-import { getBagsInWallet } from "loot-sdk";
 import prisma from "@server/helpers/prisma";
+import { getWizardCards } from "@app/features/getWizardCards";
 
 const api = async (req: NextApiRequest, res: NextApiResponse) => {
   const { signature, account }: { signature?: string; account?: string } = req.query;
@@ -11,10 +11,9 @@ const api = async (req: NextApiRequest, res: NextApiResponse) => {
   const verified = account.toLowerCase() == utils.verifyMessage(SIGNATURE_TEXT, signature).toLowerCase();
 
   if (verified) {
-    const bags = await getBagsInWallet(account.toLowerCase());
-    const filteredBags = bags.filter((bag) => bag.head.toLowerCase().includes("wizard"));
+    const wizardCards = await getWizardCards(account.toLowerCase());
 
-    if (filteredBags.length > 0) {
+    if (wizardCards.length > 0) {
       let [user] = await prisma.user.findMany({
         where: { address: account.toLowerCase() },
       });

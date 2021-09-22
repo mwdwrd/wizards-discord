@@ -23,6 +23,7 @@ export const getAccessToken = async (code: string) => {
     scope: "identify guilds.join",
     code,
   };
+
   const response = await fetch("https://discord.com/api/oauth2/token", {
     method: "post",
     body: Object.keys(body)
@@ -90,7 +91,8 @@ export const setRolesForUser = async (roles: string[], userID: string) => {
     body: JSON.stringify({ roles }),
   }).then((res) => res.json());
 };
-export const addRoleForUser = async (roleId: string, userID: string) => {
+
+export const addRoleForUser = async (roleId?: string, userID?: string) => {
   await fetch(`https://discord.com/api/v8/guilds/${process.env.DISCORD_SERVER_ID}/members/${userID}/roles/${roleId}`, {
     method: "PUT",
     headers: {
@@ -99,6 +101,7 @@ export const addRoleForUser = async (roleId: string, userID: string) => {
     },
   }).then((res) => res.text());
 };
+
 export const removeRoleForUser = async (roleId: string, userID: string) => {
   await fetch(`https://discord.com/api/v8/guilds/${process.env.DISCORD_SERVER_ID}/members/${userID}/roles/${roleId}`, {
     method: "DELETE",
@@ -109,31 +112,5 @@ export const removeRoleForUser = async (roleId: string, userID: string) => {
   }).then((res) => res.text());
 };
 
-export const RolesToIDs: Record<string, string> = {
-  "Ancient Helm": "884485814816497694",
-  "Ancient Helm of Detection": "884485995872002098",
-  "Ancient Helm of Enlightenment": "884486634169598032",
-  "Ancient Helm of Skill": "884486697079955536",
-  "Ancient Helm of Giants": "884486734354731008",
-  "Ancient Helm of Brilliance": "884486771012956211",
-  "Ancient Helm of Anger": "884486809986404373",
-  "Ancient Helm of the Fox": "884486920707665930",
-  "Ancient Helm of Reflection": "884487484443074581",
-  "Ancient Helm of Titans": "884487527539568761",
-  "Ancient Helm of Power": "884487569503563846",
-  "Ancient Helm of Vitriol": "884487605528436837",
-  "Ancient Helm of Protection": "884487645944750090",
-  "Ancient Helm of Perfection": "884487689229975552",
-  "Ancient Helm of the Twins": "884487730782949377",
-  "Ancient Helm of Fury": "884487980935446638",
-  "Ancient Helm of Rage": "884488031275462656",
-};
-
-// Guardian of the Realm
-export const AdminRoleID = "882448562758246451";
-
-// Builder
-export const BuilderRoleID = "884143420266938481";
-
-// Ancient
-export const flexRoleID = "881897843198132255";
+export const AdminRoleID = process.env.NEXT_PUBLIC_ADMIN_ROLE;
+export const WizardRoleID = process.env.NEXT_PUBLIC_WIZARD_ROLE;

@@ -1,7 +1,7 @@
+import getWizardCards from "@app/features/getWizardCards";
 import prisma from "@server/helpers/prisma";
-import { addRoleForUser, AdminRoleID, BuilderRoleID, flexRoleID, getRolesForUser, removeRoleForUser, RolesToIDs } from "@server/services/Discord";
+import { addRoleForUser, AdminRoleID, getRolesForUser, removeFromServer, WizardRoleID } from "@server/services/Discord";
 import dayjs from "dayjs";
-import { getBagsInWallet } from "loot-sdk";
 import { NextApiHandler } from "next";
 
 const api: NextApiHandler = async (_req, res) => {
@@ -15,53 +15,48 @@ const api: NextApiHandler = async (_req, res) => {
       lastChecked: "asc",
     },
   });
+
   for (const user of usersToRefresh) {
-    const bags = await getBagsInWallet(user.address.toLowerCase());
-    const filteredBags = bags.filter((bag) => bag.head.toLowerCase().includes("wizard"));
-    console.log(`${user.username} ${user.address} has ${filteredBags.length} wizards: (${filteredBags.map((bag) => bag.head).join(", ")})`);
+    const wizardCards = await getWizardCards(user.address.toLowerCase());
+    console.log(`${user.username} ${user.address} has ${wizardCards.length} wizards: (${wizardCards.map((cardId: number) => cardId).join(", ")})`);
 
-    // Do not kick users that have not entered through this gate.
-    // if (filteredBags.length == 0) {
-    //   console.log('Should kick', user.username);
-    //   await prisma.user.update({
-    //     where: { id: user.id },
-    //     data: { lastChecked: new Date(), inServer: false, wizards: [] }
-    //   });
-    //   try {
-    //     console.log(`Removing ${user.username} from server`);
-    //     await removeFromServer(user.discordId as string);
-    //   } catch (err) {
-    //     console.log(err);
-    //   }
-    // }
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        lastChecked: new Date(),
-        inServer: true,
-        wizards: filteredBags.map((bag) => bag.head),
-      },
-    });
-    if (user.discordId && user.inServer) {
-      const newRoleIds = filteredBags.map((bag) => bag.head).map((name) => RolesToIDs[name]);
-      const { roles: existingRoleIds }: { roles: string[] } = await getRolesForUser(user.discordId);
-      const toRemove = existingRoleIds?.filter((x) => !newRoleIds?.includes(x)) || [];
-      const toAdd = newRoleIds?.filter((x) => !existingRoleIds?.includes(x)) || [];
-      for (const roleId of toRemove) {
-        if (roleId == AdminRoleID || roleId == BuilderRoleID || roleId == flexRoleID) continue;
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        console.log("Removing role for user", roleId, user.discordId);
-        await removeRoleForUser(roleId, user.discordId);
+    if (wizardCards.length === 0) {
+      console.log("Kicking User", user.username);
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastChecked: new Date(), inServer: false, wizards: [] },
+      });
+      try {
+        console.log(`Removing ${user.username} from server`);
+        await removeFromServer(user.discordId as string);
+      } catch (err) {
+        console.log(err);
       }
-      for (const roleId of toAdd) {
-        if (roleId == AdminRoleID) continue;
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        console.log("Adding role for user", roleId, user.discordId);
-        await addRoleForUser(roleId, user.discordId);
+    } else {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          lastChecked: new Date(),
+          inServer: true,
+          wizards: wizardCards.map((cardId: number) => cardId),
+        },
+      });
+
+      if (user.discordId && user.inServer) {
+        const { roles: userRoleIds }: { roles: string[] } = await getRolesForUser(user.discordId);
+        const isAdmin = userRoleIds.filter((roleId) => roleId === AdminRoleID);
+        const isWizard = userRoleIds.filter((roleId) => roleId === WizardRoleID);
+
+        if (isAdmin) continue;
+        if (!isWizard) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          console.log(`Adding Wizard Role`, WizardRoleID, user.discordId, user.address.toLowerCase());
+          await addRoleForUser(WizardRoleID as string, user.discordId);
+        }
       }
     }
   }
+
   return res.json({ success: true });
 };
 
